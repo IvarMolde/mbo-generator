@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBO Oppgavegenerator – Molde voksenopplæringssenter</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blå: #1F4E79; --blå2: #2E6FAB; --grønn: #2C5F2D;
+  --gull: #C8960C; --hvit: #FAFAF8; --tekst: #1A1A2E;
+  --dempet: #5A6070; --kant: #E2E8F0; --r: 10px;
+  --skygge: 0 2px 16px rgba(31,78,121,0.10);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--hvit); color: var(--tekst); min-height: 100vh; }
+
+/* HEADER */
+header { background: var(--blå); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(0,0,0,0.18); }
+.header-inner { max-width: 1140px; margin: 0 auto; padding: 14px 28px; display: flex; align-items: center; gap: 16px; }
+.logo { width: 40px; height: 40px; background: var(--gull); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'DM Serif Display', serif; font-size: 20px; color: white; flex-shrink: 0; }
+.header-tekst h1 { font-family: 'DM Serif Display', serif; font-size: 19px; color: white; font-weight: 400; }
+.header-tekst p { font-size: 11px; color: #A8C4E0; margin-top: 1px; letter-spacing: 0.04em; }
+.status { margin-left: auto; display: flex; align-items: center; gap: 7px; font-size: 12px; color: #A8C4E0; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; transition: background .3s; }
+.dot.ok { background: #22c55e; }
+
+/* LAYOUT */
+main { max-width: 1140px; margin: 0 auto; padding: 28px 28px 80px; display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start; }
+
+/* PANEL */
+.panel { background: white; border: 1px solid var(--kant); border-radius: var(--r); box-shadow: var(--skygge); overflow: hidden; position: sticky; top: 80px; }
+.panel-hd { background: var(--blå); padding: 15px 18px; color: white; }
+.panel-hd h2 { font-family: 'DM Serif Display', serif; font-size: 15px; font-weight: 400; }
+.panel-hd p { font-size: 11px; opacity: 0.65; margin-top: 2px; }
+.panel-bd { padding: 18px; }
+
+/* FELT */
+.felt-lbl { font-size: 11px; font-weight: 600; color: var(--dempet); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 5px; display: block; }
+.felt-lbl { margin-top: 14px; }
+.felt-lbl:first-child { margin-top: 0; }
+.skillelinje { border: none; border-top: 1px solid var(--kant); margin: 14px 0; }
+
+/* CHIP-RADER */
+.chip-rad { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { padding: 5px 13px; border-radius: 20px; border: 1.5px solid var(--kant); background: #F8FAFC; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--dempet); transition: all .12s; }
+.chip.blå { background: var(--blå); color: white; border-color: var(--blå); }
+.chip.grønn { background: var(--grønn); color: white; border-color: var(--grønn); }
+
+/* STATS */
+.stats { background: #F0F7FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 11px 14px; margin-top: 14px; font-size: 13px; color: var(--blå); line-height: 1.65; }
+
+/* FREMGANG */
+.fremgang { margin-top: 12px; display: none; }
+.bar { height: 4px; background: var(--kant); border-radius: 2px; overflow: hidden; }
+.fill { height: 100%; background: var(--blå); width: 0; transition: width .4s ease; }
+.bar-tekst { font-size: 11px; color: var(--dempet); margin-top: 4px; text-align: center; }
+
+/* KNAPP */
+.gen-btn { width: 100%; margin-top: 14px; padding: 12px; background: var(--blå); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all .15s; }
+.gen-btn:hover:not(:disabled) { background: var(--blå2); }
+.gen-btn:disabled { opacity: .35; cursor: not-allowed; }
+.gen-btn.laster { background: var(--grønn); animation: puls 1.4s infinite; }
+@keyframes puls { 0%,100%{opacity:1}50%{opacity:.7} }
+
+/* HØYRE */
+.høyre { display: flex; flex-direction: column; gap: 20px; }
+
+/* YRKEPANEL */
+.yrke-panel { background: white; border: 1px solid var(--kant); border-radius: var(--r); box-shadow: var(--skygge); overflow: hidden; }
+.yrke-hd { padding: 14px 18px; border-bottom: 1px solid var(--kant); display: flex; align-items: center; gap: 10px; }
+.yrke-hd h2 { font-family: 'DM Serif Display', serif; font-size: 15px; font-weight: 400; }
+.søk { margin-left: auto; padding: 7px 14px; border: 1px solid var(--kant); border-radius: 20px; font-size: 13px; font-family: 'DM Sans',sans-serif; width: 170px; transition: border-color .2s; }
+.søk:focus { outline: none; border-color: var(--blå2); }
+.lenke { font-size: 12px; color: var(--blå2); cursor: pointer; text-decoration: underline; white-space: nowrap; }
+
+/* BRANSJER */
+.bransje { border-bottom: 1px solid var(--kant); }
+.bransje:last-child { border-bottom: none; }
+.bransje-hd { padding: 11px 18px; display: flex; align-items: center; gap: 8px; background: #FAFBFC; }
+.bransje-navn { font-size: 13px; font-weight: 600; }
+.bransje-teller { font-size: 11px; color: var(--dempet); background: var(--kant); padding: 2px 8px; border-radius: 10px; }
+.bransje-velg { margin-left: auto; font-size: 11px; color: var(--blå2); cursor: pointer; text-decoration: underline; }
+.yrke-grid { padding: 8px 18px 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+.yrke-chip { padding: 4px 11px; border-radius: 16px; border: 1px solid var(--kant); background: #F8FAFC; cursor: pointer; font-size: 12px; color: var(--dempet); transition: all .12s; }
+.yrke-chip:hover { border-color: var(--blå2); color: var(--blå); }
+.yrke-chip.valgt { background: #EBF5FF; border-color: var(--blå2); color: var(--blå); font-weight: 500; }
+
+/* LOGG */
+.logg-panel { background: white; border: 1px solid var(--kant); border-radius: var(--r); box-shadow: var(--skygge); display: none; }
+.logg-panel.vis { display: block; }
+.logg-hd { padding: 12px 18px; border-bottom: 1px solid var(--kant); }
+.logg-hd h3 { font-size: 14px; font-weight: 600; }
+.logg-bd { padding: 14px 18px; font-size: 12px; font-family: monospace; max-height: 260px; overflow-y: auto; line-height: 1.75; }
+.ok { color: #16a34a; } .feil { color: #dc2626; } .info { color: var(--blå); } .venter { color: var(--gull); }
+
+/* NEDLASTING */
+.ned-panel { background: white; border: 1px solid var(--kant); border-radius: var(--r); box-shadow: var(--skygge); display: none; }
+.ned-panel.vis { display: block; }
+.ned-hd { background: var(--grønn); padding: 13px 18px; color: white; border-radius: var(--r) var(--r) 0 0; }
+.ned-hd h3 { font-size: 14px; font-weight: 600; }
+.ned-grid { padding: 14px 18px; display: grid; grid-template-columns: repeat(auto-fill,minmax(190px,1fr)); gap: 10px; }
+.fil-kort { border: 1px solid var(--kant); border-radius: 8px; padding: 11px; display: flex; flex-direction: column; gap: 5px; }
+.fil-ikon { font-size: 20px; }
+.fil-navn { font-size: 12px; font-weight: 500; line-height: 1.3; }
+.fil-type { font-size: 11px; color: var(--dempet); }
+.dl-btn { margin-top: 4px; padding: 6px 10px; background: var(--blå); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'DM Sans',sans-serif; }
+.dl-btn:hover { background: var(--blå2); }
+.dl-alle { margin: 0 18px 14px; padding: 9px; width: calc(100% - 36px); background: var(--grønn); color: white; border: none; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans',sans-serif; }
+.dl-alle:hover { opacity: .88; }
+
+@media(max-width:780px){main{grid-template-columns:1fr;padding:16px}.panel{position:static}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">M</div>
+    <div class="header-tekst">
+      <h1>MBO Oppgavegenerator</h1>
+      <p>Molde voksenopplæringssenter &nbsp;·&nbsp; Arbeidsnorsk &nbsp;·&nbsp; CEFR A1–B1</p>
+    </div>
+    <div class="status">
+      <div class="dot" id="dot"></div>
+      <span id="statusTekst">Ikke tilkoblet</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- VENSTRE -->
+  <div class="panel">
+    <div class="panel-hd">
+      <h2>Innstillinger</h2>
+      <p>Konfigurer og start generering</p>
+    </div>
+    <div class="panel-bd">
+
+      <span class="felt-lbl" style="margin-top:0">CEFR-nivåer</span>
+      <div class="chip-rad" id="nivåRad">
+        <span class="chip blå" onclick="toggleNivå('A1',this)">A1</span>
+        <span class="chip blå" onclick="toggleNivå('A2',this)">A2</span>
+        <span class="chip blå" onclick="toggleNivå('B1',this)">B1</span>
+      </div>
+
+      <span class="felt-lbl">Filtyper</span>
+      <div class="chip-rad">
+        <span class="chip grønn" onclick="toggleFiltype('docx',this)">📄 DOCX</span>
+        <span class="chip grønn" onclick="toggleFiltype('pptx',this)">📊 Presentasjon</span>
+      </div>
+
+      <hr class="skillelinje">
+
+      <div class="stats" id="stats">Velg yrker til høyre for å se oversikt.</div>
+
+      <div class="fremgang" id="fremgang">
+        <div class="bar"><div class="fill" id="fill"></div></div>
+        <div class="bar-tekst" id="barTekst">Forbereder...</div>
+      </div>
+
+      <button class="gen-btn" id="genBtn" onclick="startGenerering()" disabled>
+        Generer oppgaver
+      </button>
+    </div>
+  </div>
+
+  <!-- HØYRE -->
+  <div class="høyre">
+    <div class="yrke-panel">
+      <div class="yrke-hd">
+        <h2>Velg yrker</h2>
+        <input type="text" class="søk" placeholder="🔍 Søk..." oninput="søkYrker(this.value)">
+        <span class="lenke" onclick="toggleAlle()">Velg / fjern alle</span>
+      </div>
+      <div id="yrkeListe"></div>
+    </div>
+
+    <div class="logg-panel" id="loggPanel">
+      <div class="logg-hd"><h3>🔄 Generering pågår</h3></div>
+      <div class="logg-bd" id="loggBd"></div>
+    </div>
+
+    <div class="ned-panel" id="nedPanel">
+      <div class="ned-hd"><h3>✅ Filer klare for nedlasting</h3></div>
+      <button class="dl-alle" id="dlAlleBtn" onclick="lastNedAlle()">⬇ Last ned alle filer</button>
+      <div class="ned-grid" id="nedGrid"></div>
+    </div>
+  </div>
+</main>
+
+<!-- Biblioteker -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="yrker.js"></script>
+
+<script>
+// ══════════════════════════════════════════
+// TILSTAND
+// ══════════════════════════════════════════
+let valgteNivåer  = new Set(["A1","A2","B1"]);
+let valgteFiltyper = new Set(["docx","pptx"]);
+let valgteYrker   = new Set();
+let filer = [];
+
+// ══════════════════════════════════════════
+// BYGG YRKELISTE
+// ══════════════════════════════════════════
+function byggListe(filter="") {
+  const el = document.getElementById("yrkeListe");
+  el.innerHTML = "";
+  const s = filter.toLowerCase();
+  Object.entries(BRANSJER).forEach(([bransje, yrker]) => {
+    const vis = yrker.filter(y => !s || y.tittel.toLowerCase().includes(s));
+    if (!vis.length) return;
+    const valgt = vis.filter(y => valgteYrker.has(y.id)).length;
+    const blokk = document.createElement("div");
+    blokk.className = "bransje";
+    blokk.innerHTML = `
+      <div class="bransje-hd">
+        <span class="bransje-navn">${bransje}</span>
+        <span class="bransje-teller">${valgt}/${vis.length}</span>
+        <span class="bransje-velg" onclick="toggleBransje('${bransje}')">
+          ${valgt===vis.length?"Fjern alle":"Velg alle"}
+        </span>
+      </div>
+      <div class="yrke-grid">
+        ${vis.map(y=>`<span class="yrke-chip${valgteYrker.has(y.id)?" valgt":""}" onclick="toggleYrke('${y.id}')">${y.tittel}</span>`).join("")}
+      </div>`;
+    el.appendChild(blokk);
+  });
+}
+
+function toggleYrke(id)     { valgteYrker.has(id)?valgteYrker.delete(id):valgteYrker.add(id); byggListe(); oppdater(); }
+function søkYrker(v)        { byggListe(v); }
+function toggleBransje(b)   { const a=BRANSJER[b],all=a.every(y=>valgteYrker.has(y.id)); a.forEach(y=>all?valgteYrker.delete(y.id):valgteYrker.add(y.id)); byggListe(); oppdater(); }
+function toggleAlle()       { const a=Object.values(BRANSJER).flat(),all=a.every(y=>valgteYrker.has(y.id)); a.forEach(y=>all?valgteYrker.delete(y.id):valgteYrker.add(y.id)); byggListe(); oppdater(); }
+function toggleNivå(n,el)   { valgteNivåer.has(n)?valgteNivåer.delete(n):valgteNivåer.add(n); el.classList.toggle("blå"); oppdater(); }
+function toggleFiltype(f,el){ valgteFiltyper.has(f)?valgteFiltyper.delete(f):valgteFiltyper.add(f); el.classList.toggle("grønn"); oppdater(); }
+
+function oppdater() {
+  const ny=valgteYrker.size, nn=valgteNivåer.size;
+  const hD=valgteFiltyper.has("docx"), hP=valgteFiltyper.has("pptx");
+  const nF=ny*(nn*(hD?1:0)+(hP?1:0));
+  const btn=document.getElementById("genBtn");
+  const stats=document.getElementById("stats");
+  if(!ny||!nn){ stats.textContent="Velg yrker og nivåer for å se oversikt."; btn.disabled=true; btn.textContent="Generer oppgaver"; return; }
+  let l=[];
+  if(hD)l.push(`<strong>${ny*nn}</strong> arbeidsark (DOCX) med grammatikkforklaring og kvalitetsjekk`);
+  if(hP)l.push(`<strong>${ny}</strong> lærerpresentasjoner (HTML)`);
+  stats.innerHTML=l.join("<br>");
+  btn.disabled=false;
+  btn.textContent=`Generer ${nF} filer →`;
+}
+
+// ══════════════════════════════════════════
+// API – kaller VÅR backend på Vercel
+// ══════════════════════════════════════════
+async function kallAPI(system, prompt) {
+  const svar = await fetch("/api/generer", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({system, prompt, maxTokens:3000})
+  });
+  if (!svar.ok) {
+    const f = await svar.json();
+    throw new Error(f.feil || "Serverfeil");
+  }
+  const data = await svar.json();
+  return data.tekst;
+}
+
+// ══════════════════════════════════════════
+// LOGG OG FREMGANG
+// ══════════════════════════════════════════
+function logg(tekst, type="info") {
+  const bd=document.getElementById("loggBd");
+  const d=document.createElement("div");
+  d.className=type; d.textContent=tekst;
+  bd.appendChild(d); bd.scrollTop=bd.scrollHeight;
+}
+function setFremgang(n,tot) {
+  const p=Math.round(n/tot*100);
+  document.getElementById("fill").style.width=p+"%";
+  document.getElementById("barTekst").textContent=`${n} av ${tot} (${p}%)`;
+}
+
+// ══════════════════════════════════════════
+// GENERERING
+// ══════════════════════════════════════════
+async function startGenerering() {
+  const yrker=Object.values(BRANSJER).flat().filter(y=>valgteYrker.has(y.id));
+  const nivåer=[...valgteNivåer];
+  if(!yrker.length||!nivåer.length) return;
+
+  filer=[];
+  document.getElementById("loggPanel").className="logg-panel vis";
+  document.getElementById("nedPanel").className="ned-panel";
+  document.getElementById("nedGrid").innerHTML="";
+  document.getElementById("loggBd").innerHTML="";
+  document.getElementById("fremgang").style.display="block";
+
+  const btn=document.getElementById("genBtn");
+  btn.disabled=true; btn.className="gen-btn laster"; btn.textContent="Genererer...";
+
+  const hD=valgteFiltyper.has("docx"), hP=valgteFiltyper.has("pptx");
+  const tot=yrker.length*(nivåer.length*(hD?1:0)+(hP?1:0));
+  let n=0;
+
+  logg(`Starter: ${yrker.length} yrker × ${nivåer.join("+")}`, "info");
+
+  for (const yrke of yrker) {
+    logg(`\n▶ ${yrke.tittel.toUpperCase()}`, "info");
+    let arkTekster=[];
+
+    if (hD) {
+      for (const nivå of nivåer) {
+        try {
+          logg(`  → Genererer arbeidsark ${nivå}...`, "venter");
+          const råtekst = await kallAPI(SYS_ARK, promptArk(yrke,nivå));
+          logg(`  → Kvalitetssjekk ${nivå}...`, "venter");
+          const kontrollert = await kallAPI(SYS_KVALITET, promptKvalitet(råtekst,yrke,nivå));
+          const blob = await lagDocx(kontrollert,yrke,nivå);
+          const fn=`${yrke.id}_${nivå}.docx`;
+          filer.push({blob,fn,type:"DOCX",nivå,tittel:yrke.tittel});
+          leggTilKort(blob,fn,"DOCX",nivå,yrke.tittel);
+          arkTekster.push(kontrollert);
+          n++; setFremgang(n,tot);
+          logg(`  ✓ ${fn}`, "ok");
+        } catch(e) { logg(`  ✗ ${e.message}`, "feil"); n++; setFremgang(n,tot); }
+      }
+    }
+
+    if (hP) {
+      try {
+        logg(`  → Lager presentasjon...`, "venter");
+        const ptekst = await kallAPI(SYS_PPTX, promptPptx(yrke,arkTekster[0]||""));
+        const blob = lagHtmlPres(yrke, ptekst);
+        const fn=`${yrke.id}_presentasjon.html`;
+        filer.push({blob,fn,type:"HTML",tittel:yrke.tittel});
+        leggTilKort(blob,fn,"Presentasjon","",yrke.tittel);
+        n++; setFremgang(n,tot);
+        logg(`  ✓ ${fn}`, "ok");
+      } catch(e) { logg(`  ✗ ${e.message}`, "feil"); n++; setFremgang(n,tot); }
+    }
+  }
+
+  logg(`\n✅ Ferdig! ${filer.length} filer generert.`, "ok");
+  document.getElementById("nedPanel").className="ned-panel vis";
+  btn.disabled=false; btn.className="gen-btn"; btn.textContent=`Generer oppgaver`;
+}
+
+function leggTilKort(blob,fn,type,nivå,tittel) {
+  const grid=document.getElementById("nedGrid");
+  const k=document.createElement("div"); k.className="fil-kort";
+  k.innerHTML=`<div class="fil-ikon">${type==="DOCX"?"📄":"📊"}</div>
+    <div class="fil-navn">${tittel}${nivå?" – "+nivå:""}</div>
+    <div class="fil-type">${fn}</div>
+    <button class="dl-btn" onclick="lastNedEn('${fn}')">Last ned</button>`;
+  grid.appendChild(k);
+}
+function lastNedEn(fn) { const f=filer.find(x=>x.fn===fn); if(f)saveAs(f.blob,f.fn); }
+function lastNedAlle() { filer.forEach(f=>saveAs(f.blob,f.fn)); }
+
+// ══════════════════════════════════════════
+// DOCX-BYGGER
+// ══════════════════════════════════════════
+async function lagDocx(tekst,yrke,nivå) {
+  const {Document,Packer,Paragraph,TextRun,AlignmentType,ShadingType,BorderStyle}=docx;
+  const BLÅ="1F4E79",LYSBLA="D6E4F0",LYSGRØNN="EAF4EA",LYSGUL="FFF3CD",LYSGRÅ="F5F5F5";
+
+  function p(tekst,fyll,fet=false,pt=11) {
+    return new Paragraph({children:[new TextRun({text:tekst||"",bold:fet,size:pt*2,font:"Arial",color:fyll===BLÅ?"FFFFFF":"000000"})],spacing:{before:20,after:40},shading:fyll?{fill:fyll,type:ShadingType.CLEAR,color:"auto"}:undefined});
+  }
+  function overskrift(tekst,fyll) {
+    return new Paragraph({children:[new TextRun({text:tekst||"",bold:true,size:26,font:"Arial",color:"000000"})],spacing:{before:160,after:60},shading:{fill:fyll||LYSGRÅ,type:ShadingType.CLEAR,color:"auto"},border:{top:{style:BorderStyle.SINGLE,size:6,color:fyll||LYSGRÅ},bottom:{style:BorderStyle.SINGLE,size:6,color:fyll||LYSGRÅ},left:{style:BorderStyle.SINGLE,size:6,color:fyll||LYSGRÅ},right:{style:BorderStyle.SINGLE,size:6,color:fyll||LYSGRÅ}}});
+  }
+
+  const barn=[
+    new Paragraph({children:[new TextRun({text:"Molde voksenopplæringssenter – MBO",bold:true,size:26,font:"Arial",color:"FFFFFF"})],alignment:AlignmentType.CENTER,spacing:{before:0,after:0},shading:{fill:BLÅ,type:ShadingType.CLEAR,color:"auto"}}),
+    new Paragraph({children:[new TextRun({text:`Tema: ${yrke.tittel}   |   Nivå: ${nivå}`,bold:true,size:24,font:"Arial",color:"FFFFFF"})],alignment:AlignmentType.CENTER,spacing:{before:0,after:0},shading:{fill:BLÅ,type:ShadingType.CLEAR,color:"auto"}}),
+    new Paragraph({children:[new TextRun({text:"Navn: ________________________________   Dato: ____________",size:22,font:"Arial",color:"FFFFFF"})],alignment:AlignmentType.CENTER,spacing:{before:0,after:100},shading:{fill:BLÅ,type:ShadingType.CLEAR,color:"auto"}}),
+  ];
+
+  const SEKSJONER={"LÆRINGSMÅL":LYSBLA,"ORDLISTE":LYSGRØNN,"GRAMMATIKK":LYSBLA,"LESETEKST":null,"OPPGAVER":null,"MUNTLIG":LYSGUL,"FASIT":LYSGRÅ,"MINI-OPPGAVE":LYSBLA};
+  let gjeldende=null, sideskift=false;
+
+  for (const linje of tekst.split("\n")) {
+    const s=linje.trim();
+    if(!s||s.startsWith("═")||s.startsWith("─")) continue;
+    const øvre=s.toUpperCase();
+    let treff=undefined;
+    for(const [nøkkel,farge] of Object.entries(SEKSJONER)){
+      if(øvre.includes(nøkkel)&&s.length<70){treff=farge;break;}
+    }
+    if(treff!==undefined&&øvre.includes("FASIT")&&!sideskift){
+      barn.push(new Paragraph({children:[],pageBreakBefore:true}));
+      sideskift=true;
+    }
+    if(treff!==undefined){
+      gjeldende=treff;
+      barn.push(overskrift(s.replace(/^#+\s*/,""),treff));
+    } else {
+      barn.push(p(s,gjeldende));
+    }
+  }
+
+  const doc2=new Document({sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:1418,bottom:1418,left:1418,right:1418}}},children:barn}]});
+  return await Packer.toBlob(doc2);
+}
+
+// ══════════════════════════════════════════
+// HTML-PRESENTASJON
+// ══════════════════════════════════════════
+function lagHtmlPres(yrke, tekst) {
+  const slides=[];
+  tekst.split(/\nSLIDE\s+\d+\s*[–\-]\s*/).forEach(blokk=>{
+    if(!blokk.trim()) return;
+    const linjer=blokk.trim().split("\n");
+    const tittel=linjer[0].trim();
+    const innhold=[],tale=[];
+    let modus="innhold";
+    linjer.slice(1).forEach(l=>{
+      const t=l.trim();
+      if(t.toLowerCase().startsWith("talenotat:")){modus="tale";const r=t.slice(10).trim();if(r)tale.push(r);}
+      else if(t.toLowerCase().startsWith("innhold:")){modus="innhold";const r=t.slice(8).trim();if(r)innhold.push(r);}
+      else if(modus==="innhold"&&t)innhold.push(t.replace(/^[-*•]\s*/,""));
+      else if(modus==="tale"&&t)tale.push(t);
+    });
+    if(tittel) slides.push({tittel,innhold,tale:tale.join(" ")});
+  });
+
+  const slideHtml=slides.map((s,i)=>`
+    <div class="slide${i===0?" active":""}">
+      <div class="shd"><span class="snr">${i+1}/${slides.length}</span><span class="stittel">${s.tittel}</span></div>
+      <div class="sbody">${s.innhold.map(l=>`<div class="punkt">${l}</div>`).join("")}</div>
+      ${s.tale?`<div class="tale">🎤 ${s.tale}`:""}
+    </div>`).join("");
+
+  const html=`<!DOCTYPE html><html lang="no"><head><meta charset="UTF-8">
+<title>${yrke.tittel} – MBO</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#1F4E79;display:flex;flex-direction:column;align-items:center;padding:20px;min-height:100vh}
+h1{color:white;font-size:16px;margin-bottom:14px;opacity:.75}
+.slide{background:white;width:920px;min-height:480px;border-radius:12px;display:none;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.25)}
+.slide.active{display:flex}
+.shd{background:#1F4E79;color:white;padding:18px 26px;display:flex;align-items:center;gap:14px;border-radius:12px 12px 0 0}
+.snr{background:rgba(255,255,255,.2);padding:3px 11px;border-radius:20px;font-size:12px}
+.stittel{font-size:22px;font-weight:600}
+.sbody{flex:1;padding:24px;display:flex;flex-direction:column;gap:10px}
+.punkt{background:#F0F7FF;border-left:4px solid #1F4E79;padding:9px 14px;border-radius:0 8px 8px 0;font-size:15px}
+.tale{background:#FFF3CD;padding:12px 18px;font-size:12px;color:#5A3A00;border-top:2px solid #F0C040;border-radius:0 0 12px 12px}
+.nav{display:flex;gap:10px;margin-top:14px}
+button{padding:9px 26px;background:white;color:#1F4E79;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+button:hover{background:#D6E4F0}
+.info{color:white;opacity:.55;font-size:11px;margin-top:10px}
+@media print{body{background:white}h1,.nav,.info{display:none}.slide{display:flex!important;box-shadow:none;page-break-after:always;border-radius:0}}
+</style></head><body>
+<h1>📊 ${yrke.tittel} – MBO Presentasjon | Molde voksenopplæringssenter</h1>
+<div>${slideHtml}</div>
+<div class="nav">
+  <button onclick="forrige()">← Forrige</button>
+  <button onclick="neste()">Neste →</button>
+  <button onclick="window.print()">🖨 Skriv ut</button>
+</div>
+<p class="info">Piltaster eller knapper for å navigere</p>
+<script>
+let nr=0;const sl=document.querySelectorAll('.slide');
+function vis(n){sl.forEach((s,i)=>s.classList.toggle('active',i===n));}
+function neste(){if(nr<sl.length-1){nr++;vis(nr);}}
+function forrige(){if(nr>0){nr--;vis(nr);}}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')neste();if(e.key==='ArrowLeft')forrige();});
+<\/script></body></html>`;
+
+  return new Blob([html],{type:"text/html;charset=utf-8"});
+}
+
+// ══════════════════════════════════════════
+// PROMPTS
+// ══════════════════════════════════════════
+const SYS_ARK=`Du er en erfaren norsklærer ved Molde voksenopplæringssenter (MBO-kurset).
+Du lager undervisningsmateriell for voksne innvandrere på A1–B1 nivå.
+Grammatikken MÅ forklares tydelig FØR oppgavene gis – alltid.
+Skriv komplett, ferdig innhold på korrekt bokmål. Aldri plassholdere.`;
+
+const SYS_KVALITET=`Du er korrekturleser for MBO-materiell på norsk.
+Finn og rett ALLE feil: grammatikk, stavemåte, V2-regel, adjektivbøying, fasit-samsvar, nivå-inkonsistens.
+Returner den komplette korrigerte teksten. Legg til [RETTET: N endringer] aller sist.`;
+
+const SYS_PPTX=`Du lager PowerPoint-innhold for MBO-kurset ved Molde voksenopplæringssenter.
+Presentasjonen brukes av læreren FØR elevene starter arbeidsarket.
+Alt på korrekt bokmål. Tydelig SLIDE N – TITTEL format.`;
+
+function promptArk(yrke,nivå){
+  const d={
+    A1:{kj:"Svært enkle setninger (maks 5–7 ord). Ordbank alltid inkludert.",op:"Finn par, Sant/Usant, Fyll inn med ordbank, substitusjonstabeller",gr:"enkle setninger, presens, personlige pronomen"},
+    A2:{kj:"Korte setninger og enkle tekster.",op:"Fyll inn, Flervalg (3 alt.), Rekkefølge, Setningsstartere, rollespill",gr:"V2-regelen, inversjon, presens/preteritum, adjektivbøying"},
+    B1:{kj:"Lengre tekster, mer kompleks grammatikk.",op:"Jumbled Sentences, Skriveoppgave, Oppsummering, Ordkart, diskusjon",gr:"Perfektum, modalverb, leddsetninger, sammensatte ord"},
+  }[nivå];
+  return `Lag et komplett MBO-arbeidsark.
+YRKE: ${yrke.tittel} | NIVÅ: ${nivå} – ${d.kj}
+ARBEIDSOPPGAVER: ${yrke.oppgaver}
+FAGORD: ${yrke.fagord}
+GRAMMATIKK: ${yrke.grammatikk} (${d.gr})
+
+SEKSJONER (følg denne rekkefølgen):
+TOPPTEKST: Molde voksenopplæringssenter – MBO | Tema: ${yrke.tittel} | Nivå: ${nivå} | Navn/Dato-felt
+LÆRINGSMÅL: 3 mål («Etter denne økten kan jeg...»)
+ORDLISTE: 10 fagord med norsk forklaring og eksempelsetning${nivå==="A1"?" + ORDBANK-ramme":""}
+LESETEKST: [BILDE: ${yrke.tittel.toLowerCase()} på jobb] + tekst på ${nivå}-nivå
+GRAMMATIKK – ${yrke.grammatikk.toUpperCase()}: Forklaring + 3 eksempler fra yrket + mini-oppgave med fasit
+OPPGAVER: 5 oppgaver (a–e), typer: ${d.op}${nivå!=="B1"?" – ordbank ved fyll-inn":""}
+MUNTLIG ØVELSE 🗣: Par/gruppe/rollespill tilpasset ${nivå}
+FASIT: Fullstendig fasit for alle oppgaver og mini-grammatikk
+
+Korrekt bokmål gjennom hele arket. Ingen plassholdere.`;
+}
+
+function promptKvalitet(tekst,yrke,nivå){
+  return `Korrekturles dette MBO-arbeidsarket grundig.
+YRKE: ${yrke.tittel} | NIVÅ: ${nivå}
+Sjekk: korrekt bokmål, V2-regel, fasit-samsvar, ${nivå}-nivå konsistens, grammatikkforklaring tydelig.
+TEKST:\n${tekst}\nReturner komplett korrigert versjon. Legg til [RETTET: N endringer] til slutt.`;
+}
+
+function promptPptx(yrke,ark){
+  return `Lag innhold for 8 slides til lærerpresentasjon.
+YRKE: ${yrke.tittel} | GRAMMATIKK: ${yrke.grammatikk}
+Formål: Gjennomgang FØR elevene starter arbeidsarket.
+
+SLIDE 1 – TITTELSLIDE
+Innhold: ${yrke.tittel} | Arbeidsnorsk | MBO Molde voksenopplæringssenter
+Talenotat: Introduser temaet. Spør klassen om de kjenner noen som jobber som ${yrke.tittel.toLowerCase()}.
+
+SLIDE 2 – AKTIVERING AV FORKUNNSKAPER
+Innhold: 3 enkle åpne spørsmål om yrket til klassen
+Talenotat: Par-samtale 2 minutter, del svarene i plenum.
+
+SLIDE 3 – HVA GJØR EN ${yrke.tittel.toUpperCase()}?
+Innhold: 5 typiske arbeidsoppgaver (${yrke.oppgaver})
+Talenotat: Les punktene høyt med klassen. Spør om ukjente ord.
+
+SLIDE 4 – VIKTIGE ORD
+Innhold: 6 fagord med forklaring: ord → forklaring (${yrke.fagord})
+Talenotat: Drill ord-for-ord. La elevene gjenta etter deg.
+
+SLIDE 5 – GRAMMATIKK: ${yrke.grammatikk.toUpperCase()}
+Innhold: Regel forklart enkelt + 2 eksempler fra yrket
+Talenotat: Skriv eksemplene på tavlen. La elevene lage egne setninger.
+
+SLIDE 6 – DETTE SKAL VI GJØRE I DAG
+Innhold: Læringsmål fra arbeidsarket + smakebit fra lesetekst + hva oppgave a og b handler om
+Talenotat: Forhåndsvisning. Svar på spørsmål før dere starter.
+
+SLIDE 7 – LÆRINGSSTRATEGIER
+Innhold: 4 tips (Se på ordlisten, Les teksten to ganger, Sjekk fasit til slutt, Spør sidemannen)
+Talenotat: Heng disse opp i klasserommet.
+
+SLIDE 8 – DISKUSJON OG REFLEKSJON
+Innhold: 3 diskusjonsspørsmål tilpasset A1–B1
+Talenotat: Avsluttende samtale. La alle si minst én ting.
+
+FORMAT: SLIDE N – TITTEL\nInnhold:\n[punkter]\nTalenotat: [tips til lærer]
+Korrekt bokmål.`;
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+// Sjekk om API er tilgjengelig (backend på Vercel)
+fetch("/api/generer",{method:"OPTIONS"})
+  .then(r=>{ if(r.ok||r.status===200){document.getElementById("dot").className="dot ok";document.getElementById("statusTekst").textContent="Klar";} })
+  .catch(()=>{});
+
+byggListe();
+oppdater();
+</script>
+</body>
+</html>
