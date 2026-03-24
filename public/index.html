@@ -569,7 +569,7 @@ Korrekt bokmål.`;
 // INIT
 // ══════════════════════════════════════════
 // Sjekk om API er tilgjengelig (backend på Vercel)
-fetch("/api/generer",{method:"OPTIONS"})
+fetch("/api/generate",{method:"OPTIONS"})
   .then(r=>{ if(r.ok||r.status===200){document.getElementById("dot").className="dot ok";document.getElementById("statusTekst").textContent="Klar";} })
   .catch(()=>{});
 
